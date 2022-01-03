@@ -4,6 +4,8 @@ import { House } from './entities/house.entity';
 import { Project } from './entities/project.entity';
 import { User } from './entities/user.entity';
 import { DatabaseSeeder } from '../../database/seeder/database.seeder';
+import { ProjectSeeder } from '../../database/seeder/project.seeder';
+import { exit } from 'process';
 
 describe('Run seeders', () => {
 
@@ -30,5 +32,12 @@ describe('Run seeders', () => {
 
     const users = await orm.em.findAndCount(User, {});
     expect(users[1]).toBe(1);
+  });
+
+  test('that by calling ProjectSeeder the AfterUpdate is also called correctly', async () => {
+
+    const seeder = orm.getSeeder();
+    await seeder.seed(ProjectSeeder);
+    exit(0);
   });
 });

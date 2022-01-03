@@ -1,4 +1,4 @@
-import { Collection, Entity, OneToMany, PrimaryKey, Property } from '@mikro-orm/core';
+import {AfterUpdate, Collection, Entity, EventArgs, OneToMany, PrimaryKey, Property} from '@mikro-orm/core';
 import { House } from './house.entity';
 
 @Entity()
@@ -21,5 +21,21 @@ export class Project {
 
   @Property()
   createdAt: Date = new Date();
+
+  @Property()
+  updatedAt: Date = new Date();
+
+  @AfterUpdate()
+  afterUpdate(args: EventArgs<House>) {
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const somethingAsync = async () => {
+      console.log('async 0');
+      await delay(1000);
+      return 0;
+    };
+    if (args.changeSet?.payload.sth) {
+      return somethingAsync();
+    }
+  }
 
 }
