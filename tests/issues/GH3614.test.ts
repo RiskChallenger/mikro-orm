@@ -103,6 +103,36 @@ test('change a 1:1 relation with a new entity and delete the old one 1', async (
   expect(oldOwner2).toBeNull();
 });
 
+test('change a 1:1 relation twice with a new entity and delete the old one 1', async () => {
+  const project = await createProject();
+  const oldOwner = project.owner!;
+  const newOwner = orm.em.create(User, { name: 'Johnny' });
+  project.owner = wrap(newOwner).toReference();
+  expect(oldOwner.unwrap().project1).toBeUndefined();
+  const mock = mockLogger(orm, ['query']);
+  await orm.em.flush();
+
+  const queries = mock.mock.calls.map(q => q[0]);
+
+  expect(queries[1]).toMatch('delete from `user` where `id` in (?)');
+  expect(queries[2]).toMatch('insert into `user` (`name`, `project1_id`) values (?, ?)');
+
+  // const oldOwner2 = await orm.em.fork().findOne(User, oldOwner.id);
+  // expect(oldOwner2).toBeNull();
+
+  // Trying this again in the same run will fail somehow
+
+  const oldOwner3 = project.owner!;
+  const newOwner2 = orm.em.create(User, { name: 'Hank' });
+  project.owner = wrap(newOwner2).toReference();
+  expect(oldOwner3.unwrap().project1).toBeUndefined();
+  await orm.em.flush();
+
+
+  expect(queries[4]).toMatch('delete from `user` where `id` in (?)');
+  expect(queries[5]).toMatch('insert into `user` (`name`, `project1_id`) values (?, ?)');
+});
+
 test('change a 1:1 relation with a new entity and not delete the old one', async () => {
   const project = await createProject();
   const oldOwner = project.secondaryOwner!;
